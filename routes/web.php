@@ -45,12 +45,8 @@ Route::get('testAddCart',function() {
     $url = config('app.add_cart');
     $response=$client->request('POST', $url, [
         'json' => [
-            'user_id' => 1,
-            'id' => 1,
-            'name' => 'MacBook Pro',
-            'price' => (int) 25000000,
-            'details' => '15 inch, 1TB SSD, 32GB RAM',
-            'image' => 'https://i.imgur.com/xS1NwjK.jpg',
+            'user_id' => auth()->user()->id,
+            'product_id' => 2,
         ]
     ]);
     // return redirect()->route('cart.index')->with('success_message','Item was added to your cart!');

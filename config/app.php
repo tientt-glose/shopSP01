@@ -3,8 +3,9 @@
 return [
     'ship' => 35000,
     'tax' => 0.1,
-    'create_billing' => "http://localhost/shopSP01/public/api/billing",
-    'add_cart' => "http://localhost/shopSP01/public/api/products",
+    // 'create_billing' => "http://localhost/shopSP01/public/api/billing",
+    'create_billing' => "https://sp-04-order.herokuapp.com/api/order",
+    'add_cart' => "http://localhost/shopSP01/public/api/carts",
     'add_product' => "https://nguyenvd27-ltct-demo.herokuapp.com/api/products",
     'add_coupon' => "https://secure-mesa-29267.herokuapp.com/api/coupons",
     
