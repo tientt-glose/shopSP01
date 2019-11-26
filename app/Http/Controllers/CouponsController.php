@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Coupon;
 use Gloudemans\Shoppingcart\Facades\Cart;
+use App\CartProduct;
+use App\CartUser;
+use App\Http\Controllers\CartController;
+
 
 class CouponsController extends Controller
 {
@@ -41,10 +45,11 @@ class CouponsController extends Controller
         if (!$coupon) {
             return redirect()->route('checkout.index')->withErrors('Invalid coupon code. Please try again.');
         }
-
+        $cart = CartController::addToCartUsersTables();  
+        $cartproduct= CartProduct::where('cart_id',$cart->id)->get();
         session()->put('coupon', [
             'code' => $coupon->code,
-            'discount' => $coupon->discount(Cart::subtotal()),
+            'discount' => $coupon->discount(getSubTotal($cartproduct)),
         ]);
 
         return redirect()->route('checkout.index')->with('success_message', 'Coupon has been applied!');

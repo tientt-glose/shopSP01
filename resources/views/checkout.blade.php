@@ -62,16 +62,16 @@
                         </div>
                     </div> <!-- end half-form -->
 
-                    <div class="half-form">
-                        <div class="form-group">
+                    {{-- <div class="half-form"> --}}
+                        {{-- <div class="form-group">
                             <label for="postalcode">Postal Code</label>
                             <input type="text" class="form-control" id="postalcode" name="postalcode" value="" required>
-                        </div>
+                        </div> --}}
                         <div class="form-group">
                             <label for="phone">Phone</label>
                             <input type="text" class="form-control" id="phone" name="phone" value="" required>
                         </div>
-                    </div> <!-- end half-form -->
+                    {{-- </div> <!-- end half-form --> --}}
 
                     <div class="spacer"></div>
 
@@ -109,19 +109,19 @@
 
                 
                 <div class="checkout-table">
-                        @foreach (Cart::content() as $item)
+                        @foreach ($cartproduct as $item)
                         <div class="checkout-table-row">
                             <div class="checkout-table-row-left">
-                                <img src="{{ $item->options->image }}" alt="item" class="checkout-table-img">
+                                <img src="{{ $item->getImgById() }}" alt="item" class="checkout-table-img">
                                 <div class="checkout-item-details">
                                     <div class="checkout-table-item">{{ $item->name }}</div>
-                                    <div class="checkout-table-description">{{ $item->options->description }}</div>
-                                    <div class="checkout-table-price">{{ presentPrice($item->subtotal) }}</div>
+                                    <div class="checkout-table-description">{{ $item->getDesById() }}</div>
+                                    <div class="checkout-table-price">{{ presentPrice($item->getProductTotalById()) }}</div>
                                 </div>
                             </div> <!-- end checkout-sub-table -->
     
                             <div class="checkout-table-row-right">
-                                <div class="checkout-table-quantity">{{ $item->qty }}</div>
+                                <div class="checkout-table-quantity">{{ $item->quantity }}</div>
                             </div>
                         </div> <!-- end checkout-table-row -->
                         @endforeach
@@ -148,7 +148,7 @@
                     </div>
 
                     <div class="checkout-totals-right">
-                        {{ presentPrice(Cart::subtotal()) }} <br>
+                        {{ presentPrice(getSubTotal($cartproduct)) }} <br>
                         @if (session()->has('coupon'))
                             -{{ presentPrice($discount) }} <br>
                             <hr>

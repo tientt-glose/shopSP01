@@ -7,6 +7,7 @@ use App\Http\Requests;
 use App\Http\Resources\Product as ProductResource;
 use GuzzleHttp\Client;
 use App\Product;
+use PhpParser\Node\Stmt\Foreach_;
 
 class ProductController extends Controller
 {
@@ -31,25 +32,37 @@ class ProductController extends Controller
         // // dd($data);
         // return Product::make($data)->resolve();
         // return 'something';
-
+        Product::truncate();
         $client = new \GuzzleHttp\Client();
-        $url = config('app.add_cart');
-        $response=$client->request('POST', $url, [
-            'json' => [
-                'user_id' => 1,
-                'id' => 1,
-                'name' => 'MacBook Pro',
-                'price' => (int) 25000000,
-                'details' => '15 inch, 1TB SSD, 32GB RAM',
-                'image' => 'https://i.imgur.com/xS1NwjK.jpg',
-            ]
-        ]);
-        // return redirect()->route('cart.index')->with('success_message','Item was added to your cart!');
-    
+        $url = config('app.add_product');
+        // $response=$client->request('POST', $url, [
+        //     'json' => [
+        //         'user_id' => 1,
+        //         'id' => 1,
+        //         'name' => 'MacBook Pro',
+        //         'price' => (int) 25000000,
+        //         'details' => '15 inch, 1TB SSD, 32GB RAM',
+        //         'image' => 'https://i.imgur.com/xS1NwjK.jpg',
+        //     ]
+        // ]);
+        $response = $client->get($url);
         $data = $response->getBody();
-        $data = json_decode($data);
-        dd($data);
-        // //Get products
+        $data = json_decode($data,true);
+        // dd($data->data);
+        foreach($data['data'] as $i)
+        {
+            unset($i['created_at']);
+            unset($i['updated_at']);
+            Product::insert($i);
+            var_dump($i);
+            echo '<br/>';
+        }
+        // foreach($data['data'] as $i)
+        //     {
+        //         echo $i['name'].'<br/>';
+        //     }
+        // dd($data);
+        //Get products
         // $products = Product::paginate(2);
 
         // return ProductResource::collection($products);

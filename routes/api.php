@@ -21,5 +21,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // Route::get('products','ProductAPIController@index');
 // Route::post('products','CartController@store');
 Route::post('products','ProductAPIController@store');
+Route::get('products','ProductAPIController@index');
+Route::get('coupons','CouponsAPIController@index');
+Route::post('billing','BillingAPItest@store');
+
+
 
 

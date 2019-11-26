@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class ConfirmationController extends Controller
+class BillingAPItest extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,11 +13,7 @@ class ConfirmationController extends Controller
      */
     public function index()
     {
-        if (! session()->has('success_message')) {
-            return redirect('/');
-        }
-
-        return view('thankyou');
+        
     }
 
     /**
@@ -38,7 +34,7 @@ class ConfirmationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return $request->all();
     }
 
     /**

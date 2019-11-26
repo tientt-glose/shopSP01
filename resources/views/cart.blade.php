@@ -10,7 +10,7 @@
 
     <div class="breadcrumbs">
         <div class="container">
-            <a href="/shopSP01/public">Home</a>
+            <a href="/">Home</a>
             <i class="fa fa-chevron-right breadcrumb-separator"></i>
             <span>Shopping Cart</span>
         </div>
@@ -34,37 +34,36 @@
                 </div>
             @endif
 
-            @if (Cart::count() > 0)
+            @if (getQuantitybyCartProduct($cartproduct) > 0)
 
-            <h2>{{ Cart::count() }} item(s) in Shopping Cart</h2>
+            <h2>{{ getQuantitybyCartProduct($cartproduct) }} item(s) in Shopping Cart</h2>
 
             <div class="cart-table">
-                @foreach (Cart::content() as $item)
+                @foreach ($cartproduct as $item)
                 <div class="cart-table-row">
                     <div class="cart-table-row-left">
-                        <a href="{{ route('shop.show', $item->id) }}"><img src="{{ $item->options->image }}" alt="item" class="cart-table-img"></a>
+                        <a href="{{ route('shop.show', $item->product_id) }}"><img src="{{ $item->getImgById() }}" alt="item" class="cart-table-img"></a>
                         <div class="cart-item-details">
-                            <div class="cart-table-item"><a href="{{ route('shop.show', $item->id) }}">{{ $item->name }}</a></div>
-                            <div class="cart-table-description">{{ $item->options->description }}</div>
+                            <div class="cart-table-item"><a href="{{ route('shop.show', $item->product_id) }}">{{ $item->name }}</a></div>
+                            <div class="cart-table-description">{{ $item->getDesById() }}</div>
                         </div>
                     </div>
                     <div class="cart-table-row-right">
                         <div class="cart-table-actions">
-                            <form action="{{ route('cart.destroy', $item->rowId) }}" method="POST">
+                            <form action="{{ route('cart.destroy', $item->id) }}" method="POST">
                                 {{ csrf_field() }}
                                 {{ method_field('DELETE') }}
                                 <button type="submit" clas="cart-options">Remove</button>
                             </form>
-                            <a href="#">Save for Later</a>
                         </div>
                         <div>
-                            <select class="quantity" data-id="{{ $item->rowId }}">
+                            <select class="quantity" data-id="{{ $item->id }}">
                                 @for ($i = 1; $i <= 10 ; $i++)
-                                    <option {{ $item->qty == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    <option {{ $item->quantity == $i ? 'selected' : '' }}>{{ $i }}</option>
                                 @endfor
                             </select>
                         </div>
-                        <div>{{ presentPrice($item->subtotal) }}</div>
+                        <div>{{ presentPrice($item->getProductTotalById()) }}</div>
                     </div>
                 </div> <!-- end cart-table-row -->
                 @endforeach
@@ -80,10 +79,10 @@
 
                 <div class="cart-totals-right">
                     <div class="cart-totals-subtotal">
-                        {{ presentPrice(Cart::subtotal()) }} <br>
-                        {{ presentPrice(Cart::tax()) }} <br>
+                        {{ presentPrice(getSubTotal($cartproduct)) }} <br>
+                        {{ presentPrice(getTax($cartproduct)) }} <br>
                         {{ presentPrice(config('app.ship')) }} <br>
-                        <span class="cart-totals-total">{{ presentPrice(Cart::total()+config('app.ship')) }}</span>
+                        <span class="cart-totals-total">{{ presentPrice(getTotal($cartproduct)) }}</span>
                     </div>
                 </div>
             </div> <!-- end cart-totals -->

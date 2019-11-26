@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\CheckoutRequest;
+use App\Http\Controllers\CartController;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Cartalyst\Stripe\Laravel\Facades\Stripe;
 use Cartalyst\Stripe\Exception\CardErrorException;
+use App\CartProduct;
+use App\CartUser;
 
 class CheckoutController extends Controller
 {
@@ -17,7 +20,10 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        if (Cart::instance('default')->count() == 0) {
+        $cart = CartController::addToCartUsersTables();
+        $cartproduct= CartProduct::where('cart_id',$cart->id)->get();
+
+        if (getQuantitybyCartProduct($cartproduct) == 0) {
             return redirect()->route('shop.index');
         }
 
@@ -26,6 +32,7 @@ class CheckoutController extends Controller
             'newSubtotal' => getNumbers()->get('newSubtotal'),
             'newTax' => getNumbers()->get('newTax'),
             'newTotal' => getNumbers()->get('newTotal'),
+            'cartproduct' => $cartproduct
         ]);
     }
 
@@ -47,16 +54,15 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
-        // dd($request->all());
-        $contents = Cart::content()->map(function ($item) {
-            return $item->name.', '.$item->qty;
-        })->values()->toJson();
-        $contentss=Cart::content()->groupBy('name')->toArray();
-       
-        // $contentss = Cart::content()->map(function ($item) {
+        $cart = CartController::addToCartUsersTables();
+        $cartproduct= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity','name','price')->get()->values()->toJson();
+
+        // dd($cartproduct);
+        // $contents = Cart::content()->map(function ($item) {
         //     return $item->name.', '.$item->qty;
-        // })->values();
-        $full_address=$request->address.', tien'.$request->province.', '.$request->city;
+        // })->values()->toJson();
+       
+        $full_address=$request->address.', '.$request->province.', '.$request->city;
         try {
             $charge = Stripe::charges()->create([
                 'amount' => getNumbers()->get('newTotal'),
@@ -65,115 +71,83 @@ class CheckoutController extends Controller
                 'description' => 'Order',
                 'receipt_email' => $request->email,
                 'metadata' => [
-                    'contents' => $contents,
+                    'contents' => $cartproduct,
                     'quantity' => Cart::instance('default')->count(),
                     'discount' => collect(session()->get('coupon'))->toJson(),
                 ],
             ]);
 
-            // $client = new \GuzzleHttp\Client();
-            // $url = config('app.create_billing');
-            // $response = $client->request('POST', $url, [
-            //     'json' => [
-            //         'user_id'=> auth()->user()->id,
-            //         'billing_email' => $request->email,
-            //         'billing_name' => $request->name,
-            //         'billing_address' => $full_address,
-            //         'billing_phone' => $request->phone,
-            //         'billing_name_on_card' => $request->name_on_card ?? null,
-            //         'billing_content' => $contents,
-            //         'billing_discount' => getNumbers()->get('discount'),
-            //         'billing_discount_code' => getNumbers()->get('code'),
-            //         'billing_subtotal' => getNumbers()->get('newSubtotal'),
-            //         'billing_tax' => getNumbers()->get('newTax'),
-            //         'billing_total' => getNumbers()->get('newTotal'),
-            //         'payment_gateway' => 'Card',
-            //     ]
-            // ]);
+            $cartproducts= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity','name','price')->get();
 
-            // $client = new \GuzzleHttp\Client();
-            // $url = config('app.create_billing');
-            // $response = $client->request('POST', $url, [
-            //     'json' => [
-            //         'user'=> [
-            //             'id' => auth()->user()->id,
-            //             'name' => $request->name,
-            //             'address' => $full_address,
-            //             'phone' => $request->phone,
-            //         ],
-            //         'products'=> [
-            //             'id' => 1266,
-            //             'amount' => 1,
-            //             'name' => 'MacBook Pro',
-            //             'price' => (int) 25000000,
-            //             'subTotal' => (int) 25000000
-            //         ],
-            //         'delivery'=> [
-            //             'date' =>'19-11-23 10:00:00',
-            //             'status' => 'On going'
-            //         ],
-            //         'payment'=>[
-            //             'type' => 'VISA',
-            //             'status' => 'Cancel'
-            //         ],
-            //         'status' => 'Success',
-            //         'discount' => getNumbers()->get('discount'),
-            //         'total' => getNumbers()->get('newTotal'),
-            //     ]
-            // ]);
-            
-            // "{
-            //     ""user"": {
-            //         ""id"": 93,
-            //         ""name"": ""Greer Mcintyre"",
-            //         ""address"": ""384 Williamsburg Street, Tuttle, Virgin Islands (British)}"",
-            //         ""phone"": ""+84 (837) 555-3648""
-            //     },
-            //     ""products"": [
-            //         {
-            //             ""id"": 1266,
-            //             ""amount"": 2,
-            //             ""name"": ""aliquip duis aute sint"",
-            //             ""price"": 380000,
-            //             ""subTotal"": 760000
-            //         },
-            //         {
-            //             ""id"": 2464,
-            //             ""amount"": 3,
-            //             ""name"": ""pariatur id id occaecat"",
-            //             ""price"": 124000,
-            //             ""subTotal"": 372000
-            //         }
-            //     ],
-            //     ""delivery"": {
-            //         ""date"": ""20-07-14 07:56:00"",
-            //         ""status"": ""esse cupidatat in sint tempor""
-            //     },
-            //     ""payment"": {
-            //         ""type"": ""VISA"",
-            //         ""status"": ""Cancel""
-            //     },
-            //     ""status"": ""Success"",
-            //     ""discount"": 42000,
-            //     ""totalValue"": 1090000,
-            //     ""warranty"": ""magna aliquip sunt sit commodo""
-            // }"		
+            $client = new \GuzzleHttp\Client();
+            $url = config('app.create_billing');
+            $response = $client->request('POST', $url, [
+                'json' => [
+                    'user'=> [
+                        'id' => auth()->user()->id,
+                        'name' => $request->name,
+                        'address' => $full_address,
+                        'phone' => $request->phone,
+                    ],
+                    'products'=> $cartproducts,
+                    // [
+                    //     'id' => 1266,
+                    //     'amount' => 1,
+                    //     'name' => 'MacBook Pro',
+                    //     'price' => (int) 25000000,
+                    //     'subTotal' => (int) 25000000
+                    // ],
+                    // 'delivery'=> [
+                    //     'date' =>'19-11-23 10:00:00',
+                    //     'status' => 'On going'
+                    // ],
+                    'payment'=>[
+                        'type' => 'VISA',
+                        'status' => 'Cancel'
+                    ],
+                    'status' => 'Success',
+                    'discount' => getNumbers()->get('discount'),
+                    'total' => getNumbers()->get('newTotal'),
+                ]
+            ]);	
 
             // Testing respon
             // $data = $response->getBody()->getContents();
-            // // $data = $response->getBody();
-            // // $data = json_decode($data);
+            // $data = $response->getBody();
+            // $data = json_decode($data);
             // dd($data);
 
-            Cart::instance('default')->destroy();
+            $this->updateToCartUsersTables($request);
+            $cart->delete();
+            // Cart::instance('default')->destroy();
             session()->forget('coupon');
             // return back()->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-            // return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
+            return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
         } catch (CardErrorException $e) {
             return back()->withErrors('Error! ' . $e->getMessage());
         }
     }
 
+    
+    protected function updateToCartUsersTables($request)
+    {
+        // Insert into orders table
+        $cart = CartController::addToCartUsersTables();
+        $cart->billing_email = $request->email;
+        $cart->billing_name = $request->name;
+        $cart->billing_address = $request->email;
+        $cart->billing_city = $request->city;
+        $cart->billing_province = $request->province;
+        $cart->billing_phone = $request->phone;
+        $cart->billing_name_on_card= $request->name_on_card;
+        $cart->billing_discount = getNumbers()->get('discount');
+        $cart->billing_discount_code = getNumbers()->get('code');
+        $cart->billing_subtotal = getNumbers()->get('newSubtotal');
+        $cart->billing_tax = getNumbers()->get('newTax');
+        $cart->billing_total = getNumbers()->get('newTotal');
+        $cart->save();
+    }
+    
     /**
      * Display the specified resource.
      *

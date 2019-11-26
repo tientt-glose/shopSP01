@@ -21,8 +21,8 @@ Route::get('/','LandingPageController@index')->name('landing-page');
 Route::get('/shop', 'ShopController@index')->name('shop.index');
 Route::get('/shop/{product}', 'ShopController@show')->name('shop.show');
 
-Route::get('/cart','CartController@index')->name('cart.index');
-Route::post('/cart','CartController@store')->name('cart.store');
+Route::get('/cart','CartController@index')->name('cart.index')->middleware('auth');
+Route::post('/cart','CartController@store')->name('cart.store')->middleware('auth');
 Route::patch('/cart/{product}','CartController@update')->name('cart.update');
 Route::delete('/cart/{product}','CartController@destroy')->name('cart.destroy');
 

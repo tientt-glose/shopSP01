@@ -18,4 +18,9 @@ class Product extends Model
     public function scopeMightAlsoLike ($query){
         return $query->inRandomOrder()->take(4);
     }
+
+    public function getImgById ($id){
+        return Product::where('id',$id)->select('image')->get();
+    }
+
 }

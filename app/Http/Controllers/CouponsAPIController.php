@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Coupon;
 
-class ConfirmationController extends Controller
+class CouponsAPIController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,11 +14,24 @@ class ConfirmationController extends Controller
      */
     public function index()
     {
-        if (! session()->has('success_message')) {
-            return redirect('/');
-        }
+        // Coupon::truncate();
+        $client = new \GuzzleHttp\Client();
+        $url = config('app.add_coupon');
+        $response = $client->get($url);
+        $data = $response->getBody();
+        $data = json_decode($data,true);
+        // dd($data->data);
+        foreach($data['data'] as $i)
+        {
+            unset($i['expiry_date']);
+            unset($i['status']);
+            $i=change_key($i,'coupon_code','code');
+            $i=change_key($i,'amount_type','type');
 
-        return view('thankyou');
+            Coupon::insert($i);
+            var_dump($i);
+            echo '<br/>';
+        }
     }
 
     /**
