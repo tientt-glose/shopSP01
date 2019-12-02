@@ -77,45 +77,45 @@ class CheckoutController extends Controller
                 ],
             ]);
 
-            // $cartproducts= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity','name','price')->get();
+            $cartproducts= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity','name','price')->get();
 
-            // $client = new \GuzzleHttp\Client();
-            // $url = config('app.create_billing');
-            // $response = $client->request('POST', $url, [
-            //     'json' => [
-            //         'user'=> [
-            //             'id' => auth()->user()->id,
-            //             'name' => $request->name,
-            //             'address' => $full_address,
-            //             'phone' => $request->phone,
-            //         ],
-            //         'products'=> $cartproducts,
-            //         // [
-            //         //     'id' => 1266,
-            //         //     'amount' => 1,
-            //         //     'name' => 'MacBook Pro',
-            //         //     'price' => (int) 25000000,
-            //         //     'subTotal' => (int) 25000000
-            //         // ],
-            //         // 'delivery'=> [
-            //         //     'date' =>'19-11-23 10:00:00',
-            //         //     'status' => 'On going'
-            //         // ],
-            //         'payment'=>[
-            //             'type' => 'VISA',
-            //             'status' => 'Cancel'
-            //         ],
-            //         'status' => 'Success',
-            //         'discount' => getNumbers()->get('discount'),
-            //         'total' => getNumbers()->get('newTotal'),
-            //     ]
-            // ]);	
+            $client = new \GuzzleHttp\Client();
+            $url = config('app.create_billing');
+            $response = $client->request('POST', $url, [
+                'json' => [
+                    'user'=> [
+                        'id' => auth()->user()->id,
+                        'name' => $request->name,
+                        'address' => $full_address,
+                        'phone' => $request->phone,
+                    ],
+                    'products'=> $cartproducts,
+                    // [
+                    //     'id' => 1266,
+                    //     'amount' => 1,
+                    //     'name' => 'MacBook Pro',
+                    //     'price' => (int) 25000000,
+                    //     'subTotal' => (int) 25000000
+                    // ],
+                    // 'delivery'=> [
+                    //     'date' =>'19-11-23 10:00:00',
+                    //     'status' => 'On going'
+                    // ],
+                    'payment'=>[
+                        'type' => 'VISA',
+                        'status' => 'Cancel'
+                    ],
+                    'status' => 'Success',
+                    'discount' => getNumbers()->get('discount'),
+                    'total' => getNumbers()->get('newTotal'),
+                ]
+            ]);	
 
             // Testing respon
             // $data = $response->getBody()->getContents();
-            // $data = $response->getBody();
-            // $data = json_decode($data);
-            // dd($data);
+            $data = $response->getBody();
+            $data = json_decode($data);
+            dd($data);
 
             $this->updateToCartUsersTables($request);
             $cart->delete();
