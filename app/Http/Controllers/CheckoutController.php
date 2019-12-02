@@ -107,7 +107,7 @@ class CheckoutController extends Controller
                     ],
                     'status' => 'Success',
                     'discount' => getNumbers()->get('discount'),
-                    'total' => getNumbers()->get('newTotal'),
+                    'totalValue' => getNumbers()->get('newTotal'),
                 ]
             ]);	
 
