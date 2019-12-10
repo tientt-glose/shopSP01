@@ -31,7 +31,7 @@ class CartController extends Controller
             'cartproduct' => $cartproduct,
             'user_id' => session()->get('user')['user_id'],
             'session_id' => session()->get('user')['session_id'],
-            'url' => null
+            'url' => session()->get('user')['url']
             ]);
     }
 
@@ -80,8 +80,9 @@ class CartController extends Controller
         session(['user'=>[
             'user_id' => $user_id,
             'session_id' => $session_id,
+            'url' => 'http://'.$url
         ]]);
-        
+
         $cart = $this->addToCartUsersTablesbyUser_id($user_id);
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
         $mightAlsoLike = Product::MightAlsoLike()->get();
