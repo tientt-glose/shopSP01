@@ -80,6 +80,8 @@ class CartController extends Controller
         return view('cart')->with([
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
+            'user_id' => $user_id,
+            'session_id' => $session_id
             ]);
     }
 

@@ -88,7 +88,8 @@
             </div> <!-- end cart-totals -->
 
             <div class="cart-buttons">
-                <a href="{{ route('shop.index') }}" class="button">Continue Shopping</a>
+                {{-- <a href="{{ route('shop.index') }}" class="button">Continue Shopping</a> --}}
+                <a href="{{ config('app.nhom9').'/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Continue Shopping</a>
                 <a href="{{ route('checkout.index') }}" class="button-primary">Proceed to Checkout</a>
             </div>
             @else

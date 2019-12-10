@@ -10,6 +10,7 @@ return [
     'add_coupon' => "https://secure-mesa-29267.herokuapp.com/api/coupons",
     'auth' => "http://secure-mountain-93147.herokuapp.com",
     'api' => "http://shopsp-01.herokuapp.com",
+    'nhom9' => "http://localhost:8080/api",
     
     /*
     |--------------------------------------------------------------------------
