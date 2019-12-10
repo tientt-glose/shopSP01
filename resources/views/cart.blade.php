@@ -91,7 +91,7 @@
                 @if ($url==null)
                 <a href="{{ route('shop.index') }}" class="button">Continue Shopping</a>
                 @else
-                <a href="{{ $url.'/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Continue Shopping</a>
+                <a href="{{ $url.'/api/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Continue Shopping</a>
                 @endif
                 <a href="{{ route('checkout.index') }}" class="button-primary">Proceed to Checkout</a>
             </div>
