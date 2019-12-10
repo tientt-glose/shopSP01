@@ -40,7 +40,7 @@ class AuthUser extends Controller
     {
         $url=session()->get('user')['url'];
         session()->forget('user');
-        if ($url!=null) return redirect()->away($url);
+        if ($url!=null) return redirect()->away($url.'/api/destroysession');
         else return redirect()->route('landing-page');
     }
 
