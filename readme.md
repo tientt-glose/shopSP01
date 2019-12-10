@@ -22,7 +22,7 @@
 * php artisan make:controller ProductController --resource or php artisan make:controller ProductController -r
 * php artisan make:resource Product
 * composer install
-* composer update
+* composer update (first from local and deploy after)
 * php artisan cache:clear
 * php artisan config:clear
 * php artisan view:clear 
