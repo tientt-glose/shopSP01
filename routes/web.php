@@ -22,7 +22,10 @@ Route::get('/shop', 'ShopController@index')->name('shop.index');
 Route::get('/shop/{product}', 'ShopController@show')->name('shop.show');
 
 Route::get('/cart','CartController@index')->name('cart.index');
-Route::get('/cart/{sessionid}&{userid}','CartController@show');
+Route::get('/cart/{sessionid}&{userid}&{url}','CartController@show');
+// Route::get('/cart/{sessionid}&{userid}','CartController@show');
+// Route::get('/see_cart?url={url}&session_id={sessionid}&user_id={userid}','CartController@show');
+
 Route::post('/cart','CartController@store')->name('cart.store');
 Route::patch('/cart/{product}','CartController@update')->name('cart.update');
 Route::delete('/cart/{product}','CartController@destroy')->name('cart.destroy');

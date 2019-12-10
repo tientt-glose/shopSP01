@@ -29,6 +29,9 @@ class CartController extends Controller
         return view('cart')->with([
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
+            'user_id' => session()->get('user')['user_id'],
+            'session_id' => session()->get('user')['session_id'],
+            'url' => null
             ]);
     }
 
@@ -72,7 +75,7 @@ class CartController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($session_id,$user_id)
+    public function show($session_id,$user_id,$url)
     {
         $cart = $this->addToCartUsersTablesbyUser_id($user_id);
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
@@ -81,7 +84,8 @@ class CartController extends Controller
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
             'user_id' => $user_id,
-            'session_id' => $session_id
+            'session_id' => $session_id,
+            'url' => 'http://'.$url
             ]);
     }
 
