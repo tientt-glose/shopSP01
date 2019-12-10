@@ -20,9 +20,8 @@ class CartController extends Controller
      */
     public function index()
     {
-        // dd(Cart::instance('1')->content());
-        
-        // $cart = CartUser::where('user_id',auth()->user()->id)->first();
+        if (isLogin()==false) return redirect(config('app.auth').'/requirelogin?url='.config('app.api'));
+        // $cart = CartUser::where('user_id',session()->get('user')['user_id'])->first();
         // dd($cart);
         $cart = $this->addToCartUsersTables();
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
@@ -73,9 +72,15 @@ class CartController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($session_id,$user_id)
     {
-        //
+        $cart = $this->addToCartUsersTablesbyUser_id($user_id);
+        $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
+        $mightAlsoLike = Product::MightAlsoLike()->get();
+        return view('cart')->with([
+            'mightAlsoLike' => $mightAlsoLike,
+            'cartproduct' => $cartproduct,
+            ]);
     }
 
     /**
@@ -134,14 +139,20 @@ class CartController extends Controller
 
     static public function addToCartUsersTables()
     {
-        $cart = CartUser::where('user_id',auth()->user()->id)->firstOrCreate(['user_id' => auth()->user()->id]);
+        $cart = CartUser::where('user_id',session()->get('user')['user_id'])->firstOrCreate(['user_id' => session()->get('user')['user_id']]);
+        return $cart;
+    }
+
+    static public function addToCartUsersTablesbyUser_id($user_id)
+    {
+        $cart = CartUser::where('user_id',$user_id)->firstOrCreate(['user_id' => $user_id]);
         return $cart;
     }
     
     static public function addToCartProductsTables($request)
     {
         // Create a cart
-        $cart = CartUser::where('user_id',auth()->user()->id)->firstOrCreate(['user_id' => auth()->user()->id]);
+        $cart = CartUser::where('user_id',session()->get('user')['user_id'])->firstOrCreate(['user_id' => session()->get('user')['user_id']]);
 
         // Add a product to cart
         $cartproduct=CartProduct::where('cart_id',$cart->id)->where('product_id',$request->id)->first();

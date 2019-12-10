@@ -39,7 +39,7 @@
 
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ auth()->user()->email }}" readonly>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ session()->get('user')['user_id'] }}" readonly>
                         {{-- <input type="email" class="form-control" id="email" name="email" value="" required> --}}
                     </div>
                     <div class="form-group">

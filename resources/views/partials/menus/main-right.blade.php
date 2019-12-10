@@ -1,20 +1,14 @@
 <ul>
-    @guest
+    @if (!(session()->has('user')))
     <li><a href="{{ route('register') }}">Sign Up</a></li>
     <li><a href="{{ route('login') }}">Login</a></li>
     @else
     <li>
-        <a href="{{ route('logout') }}"
-            onclick="event.preventDefault();
-                    document.getElementById('logout-form').submit();">
+        <a href="{{ config('app.auth').'/logout?url='.config('app.api') }}">
             Logout
         </a>
     </li>
-
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-        {{ csrf_field() }}
-    </form>
-    @endguest
+    @endif
     <li><a href="{{ route('cart.index') }}">Cart
     @if (getQuantity() > 0)
     <span class="cart-count"><span>{{ getQuantity() }}</span></span>

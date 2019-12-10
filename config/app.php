@@ -5,9 +5,11 @@ return [
     'tax' => 0.1,
     // 'create_billing' => "http://localhost/shopSP01/public/api/billing",
     'create_billing' => "https://sp-04-order.herokuapp.com/api/order",
-    'add_cart' => "http://shopsp01.herokuapp.com/api/carts",
+    'add_cart' => "http://shopsp-01.herokuapp.com/api/carts",
     'add_product' => "https://nguyenvd27-ltct-demo.herokuapp.com/api/products",
     'add_coupon' => "https://secure-mesa-29267.herokuapp.com/api/coupons",
+    'auth' => "http://secure-mountain-93147.herokuapp.com",
+    'api' => "http://shopsp-01.herokuapp.com",
     
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +170,6 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-        Barryvdh\Cors\ServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -182,6 +183,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        Barryvdh\Cors\ServiceProvider::class,
 
     ],
 

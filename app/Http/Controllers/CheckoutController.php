@@ -20,6 +20,7 @@ class CheckoutController extends Controller
      */
     public function index()
     {
+        if (isLogin()==false) return redirect(config('app.auth').'/requirelogin?url='.config('app.api'));
         $cart = CartController::addToCartUsersTables();
         $cartproduct= CartProduct::where('cart_id',$cart->id)->get();
 
@@ -84,7 +85,7 @@ class CheckoutController extends Controller
             $response = $client->request('POST', $url, [
                 'json' => [
                     'user'=> [
-                        'id' => auth()->user()->id,
+                        'id' => session()->get('user')['user_id']->id,
                         'name' => $request->name,
                         'address' => $full_address,
                         'phone' => $request->phone,
@@ -107,13 +108,14 @@ class CheckoutController extends Controller
                     ],
                     'status' => 'Success',
                     'discount' => getNumbers()->get('discount'),
-                    'totalValue' => getNumbers()->get('newTotal'),
+                    'total' => getNumbers()->get('newTotal'),
                 ]
             ]);	
 
             // Testing respon
             // $data = $response->getBody()->getContents();
             $data = $response->getBody();
+            // echo $data;
             $data = json_decode($data);
             dd($data);
 

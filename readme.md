@@ -27,6 +27,7 @@
 * php artisan config:clear
 * php artisan view:clear 
 * php artisan ui:auth
+* npm install --global cross-env (first from local and deploy after)
 
 
 ## About Laravel

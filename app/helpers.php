@@ -5,6 +5,7 @@
 // use Money\Money;
 use App\CartProduct;
 use App\CartUser;
+use App\Http\Controllers\AuthUser;
 
 
 function presentPrice($price)
@@ -23,7 +24,7 @@ function presentPrice($price)
 
 function getNumbers()
 {
-    $cart = CartUser::where('user_id', auth()->user()->id)->first();
+    $cart = CartUser::where('user_id', session()->get('user')['user_id'])->first();
     $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
     $tax = config('cart.tax') / 100;
     $discount = session()->get('coupon')['discount'] ?? 0;
@@ -85,8 +86,8 @@ function getTotal($cartproduct)
 function getQuantity()
 {
     $qty = 0;
-    if (auth()->user()) {
-        $cart = CartUser::where('user_id', auth()->user()->id)->first();
+    if (session()->has('user')) {
+        $cart = CartUser::where('user_id', session()->get('user')['user_id'])->first();
         if ($cart!=null){
         $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
         foreach ($cartproduct as $item) {
@@ -104,4 +105,20 @@ function getQuantitybyCartProduct($cartproduct)
         $qty += $item->quantity;
     }
     return $qty;
+}
+
+function isLogin()
+{
+    // if (session()->has('user')) return true;
+    // else return false;
+    // $client = new \GuzzleHttp\Client();
+    // $url = config('app.api').'/isLogin';
+    // $response = $client->get($url);
+    // $data = $response->getBody()->getContents();
+    // // dd($data);
+    // // echo $data;
+    // if (strpos($data,'yes')) return true;
+    // else return false;
+    if (AuthUser::isLogin()==true) return true;
+    else return false;
 }
