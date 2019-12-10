@@ -77,6 +77,11 @@ class CartController extends Controller
      */
     public function show($session_id,$user_id,$url)
     {
+        session(['user'=>[
+            'user_id' => $user_id,
+            'session_id' => $session_id,
+        ]]);
+        
         $cart = $this->addToCartUsersTablesbyUser_id($user_id);
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
         $mightAlsoLike = Product::MightAlsoLike()->get();
