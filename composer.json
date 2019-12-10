@@ -9,6 +9,8 @@
     "license": "MIT",
     "require": {
         "php": "^7.2",
+        "ext-intl": "*",
+        "barryvdh/laravel-cors": "^0.11.4",
         "cartalyst/stripe-laravel": "^11.0.0",
         "fideloper/proxy": "^4.0",
         "guzzlehttp/guzzle": "~6.0",
@@ -17,8 +19,7 @@
         "laravel/tinker": "^1.0",
         "laravel/ui": "^1.1",
         "moneyphp/money": "^3.2.1",
-        "barryvdh/laravel-cors": "^0.11.4",
-        "ext-intl": "*"
+        "symfony/intl": "^5.0"
     },
     "require-dev": {
         "facade/ignition": "^1.4",
