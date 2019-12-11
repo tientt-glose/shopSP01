@@ -26,24 +26,28 @@ function getNumbers()
 {
     $cart = CartUser::where('user_id', session()->get('user')['user_id'])->first();
     $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
+    $subtotal= getSubTotal($cartproduct);
     $tax = config('cart.tax') / 100;
     $discount = session()->get('coupon')['discount'] ?? 0;
     $code = session()->get('coupon')['code'] ?? null;
-    $newSubtotal = (getSubTotal($cartproduct) - $discount);
+    $newSubtotal = ($subtotal - $discount);
 
     if ($newSubtotal < 0) {
         $newSubtotal = 0;
     }
     $newTax = $newSubtotal * $tax;
-    $newTotal = $newSubtotal + $newTax + config('app.ship');
+    $shipping =  session()->get('delivery')['base_fee'];
+    $newTotal = $newSubtotal + $newTax + $shipping;
 
     return collect([
         'tax' => $tax,
         'discount' => $discount,
         'code' => $code,
+        'subtotal' => $subtotal,
         'newSubtotal' => $newSubtotal,
         'newTax' => $newTax,
         'newTotal' => $newTotal,
+        'shipping' => $shipping,
     ]);
 }
 
@@ -121,4 +125,22 @@ function isLogin()
     // else return false;
     if (AuthUser::isLogin()==true) return true;
     else return false;
+}
+
+function getDeliveryUnits(){
+    $client = new \GuzzleHttp\Client();
+    $url = config('app.add_delivery_units');
+    $response = $client->get($url);
+    $data = $response->getBody();
+    $data = json_decode($data,true);
+    return $data['delivery_units'];
+}
+
+function getUserPayment(){
+    $client = new \GuzzleHttp\Client();
+    $url = config('app.auth').'/api/user/'.session()->get('user')['user_id'].'/payment';
+    $response = $client->get($url);
+    $data = $response->getBody();
+    $data = json_decode($data,true);
+    return $data;
 }

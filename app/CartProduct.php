@@ -15,7 +15,7 @@ class CartProduct extends Model
 
     public function getDesById(){
         $des=Product::where('id',$this->product_id)->select('description')->first();
-        return $des->description;
+        return substr($des->description,0,40).'...';
     }
 
     public function presentPrice()

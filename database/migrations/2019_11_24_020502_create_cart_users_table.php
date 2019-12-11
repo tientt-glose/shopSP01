@@ -20,12 +20,12 @@ class CreateCartUsersTable extends Migration
             // $table->foreign('user_id')->references('id')->on('users')
             //       ->onUpdate('cascade')->onDelete('set null');
             $table->string('billing_email')->default('init');
-            $table->string('billing_name')->default('init');
+            $table->string('billing_name')->default('init')->nullable();
             $table->string('billing_address')->default('init');
             $table->string('billing_city')->default('init');
             $table->string('billing_province')->default('init');
             $table->string('billing_phone')->default('init');
-            $table->string('billing_name_on_card')->default('init');
+            $table->string('billing_name_on_card')->default('init')->nullable();
             $table->integer('billing_discount')->default(0);
             $table->string('billing_discount_code')->nullable();
             $table->integer('billing_subtotal')->default(0);

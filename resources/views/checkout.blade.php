@@ -37,28 +37,27 @@
                     {{ csrf_field() }}
                     <h2>Billing Details</h2>
 
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="email">Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" value="{{ session()->get('user')['user_id'] }}" readonly>
-                        {{-- <input type="email" class="form-control" id="email" name="email" value="" required> --}}
-                    </div>
+                    </div> --}}
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" value="" required>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="address">Address</label>
-                        <input type="text" class="form-control" id="address" name="address" value="" required>
+                        <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}" required>
                     </div>
 
                     <div class="half-form">
                         <div class="form-group">
                             <label for="city">City</label>
-                            <input type="text" class="form-control" id="city" name="city" value="" required>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}" required>
                         </div>
                         <div class="form-group">
                             <label for="province">Province</label>
-                            <input type="text" class="form-control" id="province" name="province" value="" required>
+                            <input type="text" class="form-control" id="province" name="province" value="{{ old('province') }}" required>
                         </div>
                     </div> <!-- end half-form -->
 
@@ -69,20 +68,49 @@
                         </div> --}}
                         <div class="form-group">
                             <label for="phone">Phone</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="" required>
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone') }}" required>
                         </div>
                     {{-- </div> <!-- end half-form --> --}}
 
                     <div class="spacer"></div>
 
+                    <h2>Delivery Units</h2>
+                    <div class="form-group">
+                        <select class="quantity" data-id={{ session()->get('delivery')['id'] }}>
+                            @for ($i = 0; $i < count($delivery); $i++)
+                                <option 
+                                    {{ session()->get('delivery')['id'] == $i ? 'selected' : '' }}
+                                    value="{{ $i }}" >{{ $delivery[$i]['name'].' - '.$delivery[$i]['base_fee'].'VND'}}
+                                </option>
+                            @endfor
+                        </select>
+                    </div>
+
+
+                    <div class="spacer"></div>
+                    
                     <h2>Payment Details</h2>
 
+                    <div class="form-group">
+                        <select class="payment" data-id={{ session()->get('user')['user_id'] }}>
+                            @foreach ($payment as $pay)
+                                <option 
+                                    {{ session()->get('payment')['card_id'] == $pay['card_id'] ? 'selected' : '' }}
+                                    value="{{ $pay['card_id'] }}">
+                                {{ substr($pay['card_number'],0,7).'*********'}}</option>
+                            @endforeach
+                            <option {{ session()->get('payment')['type'] == "COD" ? 'selected' : '' }} value="COD">COD</option>
+                            <option {{ ((session()->get('payment')['type'] == "Card") && (session()->get('payment')['card_id'] == null) ) ? 'selected' : '' }} value="Other">Other ...</option>
+                        </select>
+                    </div>
+
+                    @if ((session()->get('payment')['type'] == "Card") && (session()->get('payment')['card_id'] == null))
                     <div class="form-group">
                         <label for="name_on_card">Name on Card</label>
                         <input type="text" class="form-control" id="name_on_card" name="name_on_card" value="" required>
                     </div>
 
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                             <label for="card-element">
                               Credit or debit card
                             </label>
@@ -92,7 +120,24 @@
     
                             <!-- Used to display form errors -->
                             <div id="card-errors" role="alert"></div>
+                    </div> --}}
+
+                    <div class="form-group">
+                        <label for="ccnumber">Credit Card Number</label>
+                        <input type="text" class="form-control" id="ccnumber" name="ccnumber" value="">
                     </div>
+
+                    <div class="half-form">
+                        <div class="form-group">
+                            <label for="expiry">Expiry</label>
+                            <input type="text" class="form-control" id="expiry" name="expiry" placeholder="MM/DD">
+                        </div>
+                        <div class="form-group">
+                            <label for="cvc">CVC Code</label>
+                            <input type="text" class="form-control" id="cvc" name="cvc" value="">
+                        </div>
+                    </div> <!-- end half-form -->
+                    @endif
                     
                     <div class="spacer"></div>
 
@@ -116,7 +161,9 @@
                                 <div class="checkout-item-details">
                                     <div class="checkout-table-item">{{ $item->name }}</div>
                                     <div class="checkout-table-description">{{ $item->getDesById() }}</div>
-                                    <div class="checkout-table-price">{{ presentPrice($item->getProductTotalById()) }}</div>
+                                    {{-- <div class="checkout-table-price">{{ presentPrice($item->getProductTotalById()) }}</div> --}}
+                                    <div class="checkout-table-price">{{ presentPrice($item->price) }}</div>
+
                                 </div>
                             </div> <!-- end checkout-sub-table -->
     
@@ -155,7 +202,7 @@
                             {{ presentPrice($newSubtotal) }} <br>
                         @endif
                         {{ presentPrice($newTax) }} <br>
-                        {{ presentPrice(config('app.ship')) }} <br>
+                        {{ presentPrice($shipping) }} <br>
                         <span class="checkout-totals-total">{{ presentPrice($newTotal) }}</span>
 
                     </div>
@@ -181,96 +228,140 @@
 
 @section('extra-js')
 
+    <script src="{{ asset('js/app.js') }}"></script>
     <script>
-        (function(){
-            // Create a Stripe client.
-            var stripe = Stripe('pk_test_4sueEzTv9MWhSX045OkxPniz00fxo8JBoL');
+        // (function(){
+        //     // Create a Stripe client.
+        //     var stripe = Stripe('pk_test_4sueEzTv9MWhSX045OkxPniz00fxo8JBoL');
 
-            // Create an instance of Elements.
-            var elements = stripe.elements();
+        //     // Create an instance of Elements.
+        //     var elements = stripe.elements();
 
-            // Custom styling can be passed to options when creating an Element.
-            // (Note that this demo uses a wider set of styles than the guide below.)
-            var style = {
-            base: {
-                color: '#32325d',
-                fontFamily: '"Roboto", "Helvetica Neue", Helvetica, sans-serif',
-                fontSmoothing: 'antialiased',
-                fontSize: '16px',
-                '::placeholder': {
-                color: '#aab7c4'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-            };
+        //     // Custom styling can be passed to options when creating an Element.
+        //     // (Note that this demo uses a wider set of styles than the guide below.)
+        //     var style = {
+        //     base: {
+        //         color: '#32325d',
+        //         fontFamily: '"Roboto", "Helvetica Neue", Helvetica, sans-serif',
+        //         fontSmoothing: 'antialiased',
+        //         fontSize: '16px',
+        //         '::placeholder': {
+        //         color: '#aab7c4'
+        //         }
+        //     },
+        //     invalid: {
+        //         color: '#fa755a',
+        //         iconColor: '#fa755a'
+        //     }
+        //     };
 
-            // Create an instance of the card Element.
-            var card = elements.create('card', {
-                style: style,
-                hidePostalCode: true
-                });
+        //     // Create an instance of the card Element.
+        //     var card = elements.create('card', {
+        //         style: style,
+        //         hidePostalCode: true
+        //         });
 
-            // Add an instance of the card Element into the `card-element` <div>.
-            card.mount('#card-element');
+        //     // Add an instance of the card Element into the `card-element` <div>.
+        //     card.mount('#card-element');
 
-            // Handle real-time validation errors from the card Element.
-            card.addEventListener('change', function(event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-            }
-            });
+        //     // Handle real-time validation errors from the card Element.
+        //     card.addEventListener('change', function(event) {
+        //     var displayError = document.getElementById('card-errors');
+        //     if (event.error) {
+        //         displayError.textContent = event.error.message;
+        //     } else {
+        //         displayError.textContent = '';
+        //     }
+        //     });
 
-            // Handle form submission.
-            var form = document.getElementById('payment-form');
-            form.addEventListener('submit', function(event) {
-            event.preventDefault();
+        //     // Handle form submission.
+        //     var form = document.getElementById('payment-form');
+        //     form.addEventListener('submit', function(event) {
+        //     event.preventDefault();
 
-            // Disable the submit button to prevent repeated clicks
-            document.getElementById('complete-order').disabled = true;
+        //     // Disable the submit button to prevent repeated clicks
+        //     document.getElementById('complete-order').disabled = true;
             
-            var options = {
-                name: document.getElementById('name_on_card').value,
-                address_line1: document.getElementById('address').value,
-                address_city: document.getElementById('city').value,
-                address_state: document.getElementById('province').value,
-              }
+        //     var options = {
+        //         name: document.getElementById('name_on_card').value,
+        //         address_line1: document.getElementById('address').value,
+        //         address_city: document.getElementById('city').value,
+        //         address_state: document.getElementById('province').value,
+        //       }
 
-            stripe.createToken(card, options).then(function(result) {
-                if (result.error) {
-                // Inform the user if there was an error.
-                var errorElement = document.getElementById('card-errors');
-                errorElement.textContent = result.error.message;
+        //     stripe.createToken(card, options).then(function(result) {
+        //         if (result.error) {
+        //         // Inform the user if there was an error.
+        //         var errorElement = document.getElementById('card-errors');
+        //         errorElement.textContent = result.error.message;
 
-                // Enable the submit button
-                document.getElementById('complete-order').disabled = false;
+        //         // Enable the submit button
+        //         document.getElementById('complete-order').disabled = false;
 
-                } else {
-                // Send the token to your server.
-                stripeTokenHandler(result.token);
-                }
-            });
-            });
+        //         } else {
+        //         // Send the token to your server.
+        //         stripeTokenHandler(result.token);
+        //         }
+        //     });
+        //     });
 
-            // Submit the form with the token ID.
-            function stripeTokenHandler(token) {
-            // Insert the token ID into the form so it gets submitted to the server
-            var form = document.getElementById('payment-form');
-            var hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'stripeToken');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
+        //     // Submit the form with the token ID.
+        //     function stripeTokenHandler(token) {
+        //     // Insert the token ID into the form so it gets submitted to the server
+        //     var form = document.getElementById('payment-form');
+        //     var hiddenInput = document.createElement('input');
+        //     hiddenInput.setAttribute('type', 'hidden');
+        //     hiddenInput.setAttribute('name', 'stripeToken');
+        //     hiddenInput.setAttribute('value', token.id);
+        //     form.appendChild(hiddenInput);
 
-            // Submit the form
-            form.submit();
-            }
+        //     // Submit the form
+        //     form.submit();
+        //     }
+        // })();
+
+        (function(){
+            const classname = document.querySelectorAll('.quantity')
+
+            Array.from(classname).forEach(function(element) {
+                element.addEventListener('change', function() {
+                    const id = element.getAttribute('data-id')
+                    axios.patch(`checkout/${id}`, {
+                        delivery_id: this.value
+                    })
+                    .then(function (response) {
+                        // console.log(response);
+                        window.location.href = '{{ route('checkout.index') }}'
+                    })
+                    .catch(function (error) {
+                        // console.log(error);
+                        window.location.href = '{{ route('checkout.index') }}'
+                    });
+                })
+            })
+        })();
+        
+        (function(){
+            const classname = document.querySelectorAll('.payment')
+
+            Array.from(classname).forEach(function(element) {
+                element.addEventListener('change', function() {
+                    const id = element.getAttribute('data-id')
+                    axios.patch(`checkout_payment/${id}`, {
+                        type: this.value
+                    })
+                    .then(function (response) {
+                        // console.log(response);
+                        window.location.href = '{{ route('checkout.index') }}'
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        window.location.href = '{{ route('checkout.index') }}'
+                    });
+                })
+            })
         })();
     </script>
     
 @endsection
+

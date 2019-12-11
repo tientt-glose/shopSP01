@@ -26,12 +26,14 @@ class CartController extends Controller
         $cart = $this->addToCartUsersTables();
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
         $mightAlsoLike = Product::MightAlsoLike()->get();
+        if (!(session()->has('user')['url'])) $url=null;
+        else $url=session()->get('user')['url'];
         return view('cart')->with([
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
             'user_id' => session()->get('user')['user_id'],
             'session_id' => session()->get('user')['session_id'],
-            'url' => session()->get('user')['url']
+            'url' => $url
             ]);
     }
 
@@ -77,12 +79,14 @@ class CartController extends Controller
      */
     public function show($session_id,$user_id,$url)
     {
+        // echo $session_id;
+        // echo $user_id;
+        // echo $url;
         session(['user'=>[
             'user_id' => $user_id,
             'session_id' => $session_id,
             'url' => 'http://'.$url
         ]]);
-
         $cart = $this->addToCartUsersTablesbyUser_id($user_id);
         $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
         $mightAlsoLike = Product::MightAlsoLike()->get();

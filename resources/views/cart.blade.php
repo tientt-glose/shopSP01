@@ -63,7 +63,8 @@
                                 @endfor
                             </select>
                         </div>
-                        <div>{{ presentPrice($item->getProductTotalById()) }}</div>
+                        {{-- <div>{{ presentPrice($item->getProductTotalById()) }}</div> --}}
+                        <div>{{ presentPrice($item->price) }}</div>
                     </div>
                 </div> <!-- end cart-table-row -->
                 @endforeach
@@ -98,7 +99,11 @@
             @else
                 <h3>No item in Cart!</h3>
                 <div class="spacer"></div>
+                @if ($url==null)
                 <a href="{{ route('shop.index') }}" class="button">Continue Shopping</a>
+                @else
+                <a href="{{ $url.'/api/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Continue Shopping</a>
+                @endif
                 <div class="spacer"></div>
             @endif 
 

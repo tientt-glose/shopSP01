@@ -21,6 +21,7 @@ class CouponsAPIController extends Controller
         $data = $response->getBody();
         $data = json_decode($data,true);
         // dd($data->data);
+        // var_dump($data['data'][0]['id']);
         foreach($data['data'] as $i)
         {
             unset($i['expiry_date']);
