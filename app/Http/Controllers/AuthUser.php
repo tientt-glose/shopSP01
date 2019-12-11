@@ -38,7 +38,8 @@ class AuthUser extends Controller
 
     public function destroySession(Request $request)
     {
-        $url=session()->get('user')['url'];
+        if (session()->has('user')['url']) $url=session()->get('user')['url'];
+        else $url=null;
         session()->forget('user');
         if ($url!=null) return redirect()->away($url.'/api/destroysession');
         else return redirect()->route('landing-page');
