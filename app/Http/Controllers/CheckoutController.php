@@ -147,7 +147,7 @@ class CheckoutController extends Controller
             // $data = json_decode($data);
             // dd($data);
 
-            $this->updateToCartUsersTables($request,$full_address);
+            // $this->updateToCartUsersTables($request,$full_address);
             $cart->delete();
             // Cart::instance('default')->destroy();
             session()->forget('coupon');
