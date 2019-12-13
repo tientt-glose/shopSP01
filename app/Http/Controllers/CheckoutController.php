@@ -33,6 +33,7 @@ class CheckoutController extends Controller
         if (!(session()->has('delivery'))){
         session(['delivery'=>[
             'id' => 0,
+            'delivery_id' => $delivery['0']['id'],
             'name' => $delivery['0']['name'],
             'base_fee' => $delivery['0']['base_fee'],
         ]]);
@@ -130,7 +131,8 @@ class CheckoutController extends Controller
                         'type' => session()->get('payment')['type'],
                         'status' => (session()->get('payment')['type']=="COD") ? 'Pending' : 'Cancel'
                     ],
-                    'value'=>[
+                    'deliveryUnitId' => session()->get('delivery')['delivery_id'], 
+                    'value' =>[
                     'discount' => getNumbers()->get('discount'),
                     'shipping' => getNumbers()->get('shipping'),
                     'totalValue' => getNumbers()->get('newTotal'),
@@ -214,6 +216,7 @@ class CheckoutController extends Controller
         $delivery=getDeliveryUnits();
         session(['delivery'=>[
             'id' => $request->delivery_id,
+            'delivery_id' => $delivery[$request->delivery_id]['id'],
             'name' => $delivery[$request->delivery_id]['name'],
             'base_fee' => $delivery[$request->delivery_id]['base_fee'],
         ]]);
