@@ -14,11 +14,11 @@
        <h1>Thank you for <br> Your Order!</h1>
        <p>A confirmation email was sent</p>
        <div class="spacer"></div>
-       @if ($url==null)
+        @if (session()->get('user')['url']==null)
             <a href="{{ url('/') }}" class="button">Home Page</a>
-       @else
-            <a href="{{ $url.'/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Home Page</a>
-       @endif
+        @else
+            <a href="{{ session()->get('user')['url'].'/setsession?user_id='.$user_id.'&session_id='.$session_id }}" class="button">Home Page</a>
+        @endif
        <div class="spacer"></div>
    </div>
 
