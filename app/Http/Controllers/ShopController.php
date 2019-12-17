@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Product;
-use Illuminate\Http\Request;
 
 class ShopController extends Controller
 {
@@ -23,17 +22,14 @@ class ShopController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    
+
     public function show($id)
     {
-        $product = Product::where('id',$id)->firstOrFail();
-        $mightAlsoLike = Product::where('id','!=',$id)->MightAlsoLike()->get();
+        $product = Product::getProductById($id)->firstOrFail();
+        $mightAlsoLike = Product::where('id', '!=', $id)->MightAlsoLike()->get();
         return view('product')->with([
-            'product'=> $product,
-            'mightAlsoLike'=> $mightAlsoLike,
+            'product' => $product,
+            'mightAlsoLike' => $mightAlsoLike,
         ]);
     }
-
-
-    
 }

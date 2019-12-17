@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Product;
-use Illuminate\Http\Request;
 
 class LandingPageController extends Controller
 {
@@ -18,5 +17,4 @@ class LandingPageController extends Controller
 
         return view('landing-page')->with('products', $products);
     }
-
 }

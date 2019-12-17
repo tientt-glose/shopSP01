@@ -4,10 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\CheckoutRequest;
-use App\Http\Controllers\CartController;
-use Gloudemans\Shoppingcart\Facades\Cart;
-use Cartalyst\Stripe\Laravel\Facades\Stripe;
-use Cartalyst\Stripe\Exception\CardErrorException;
 use App\CartProduct;
 use App\CartUser;
 
@@ -20,35 +16,40 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        if (isLogin()==false) return redirect(config('app.auth').'/requirelogin?url='.config('app.api'));
-        $cart = CartController::addToCartUsersTables();
-        $cartproduct= CartProduct::where('cart_id',$cart->id)->get();
+        if (isLogin() == false) return redirect(config('app.auth') . '/requirelogin?url=' . config('app.api'));
+
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getCartByCartID($cart->id);
 
         if (getQuantitybyCartProduct($cartproduct) == 0) {
             return redirect()->route('shop.index');
         }
 
-        $delivery=getDeliveryUnits();
+        $delivery = getDeliveryUnits();
 
-        if (!(session()->has('delivery'))){
-        session(['delivery'=>[
-            'id' => 0,
-            'delivery_id' => $delivery['0']['id'],
-            'name' => $delivery['0']['name'],
-            'base_fee' => $delivery['0']['base_fee'],
-        ]]);
+        if (!(session()->has('delivery'))) {
+            session(['delivery' => [
+                'id' => 0,
+                'delivery_id' => $delivery['0']['id'],
+                'name' => $delivery['0']['name'],
+                'base_fee' => $delivery['0']['base_fee'],
+            ]]);
         }
 
-        $payment=getUserPayment();
-        if (!(session()->has('payment'))){
-            session(['payment'=>[
+        $payment = getUserPayment();
+        if ((!(session()->has('payment'))) && ($payment != null)) {
+            session(['payment' => [
                 'type' => 'card',
                 'card_id' => $payment[0]['card_id'],
                 'card_number' => $payment[0]['card_number'],
             ]]);
+        } else {
+            session(['payment' => [
+                'type' => 'COD',
+            ]]);
         }
 
-        
+
         return view('checkout')->with([
             'discount' => getNumbers()->get('discount'),
             'newSubtotal' => getNumbers()->get('newSubtotal'),
@@ -62,16 +63,6 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -79,94 +70,56 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
-        $cart = CartController::addToCartUsersTables();
-        $cartproduct= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity','name','price')->get()->toJson(JSON_UNESCAPED_UNICODE);
+        $cart = CartUser::addToCartUsersTables();
+        $cartproducts = CartProduct::where('cart_id', $cart->id)->select('product_id', 'quantity')->get();
+        $full_address = $request->address . ', ' . $request->province . ', ' . $request->city;
 
-        // dd($cartproduct);
-        // $contents = Cart::content()->map(function ($item) {
-        //     return $item->name.', '.$item->qty;
-        // })->values()->toJson();
-       
-        $full_address=$request->address.', '.$request->province.', '.$request->city;
-        // try {
-            // $charge = Stripe::charges()->create([
-            //     'amount' => getNumbers()->get('newTotal'),
-            //     'currency' => 'VND',
-            //     'source' => $request->stripeToken,
-            //     'description' => 'Order',
-            //     'receipt_email' => $request->email,
-            //     'metadata' => [
-            //         'contents' => $cartproduct,
-            //         'quantity' => Cart::instance('default')->count(),
-            //         'discount' => collect(session()->get('coupon'))->toJson(),
-            //     ],
-            // ]);
-
-            $cartproducts= CartProduct::where('cart_id',$cart->id)->select('product_id','quantity')->get();
-
-            $client = new \GuzzleHttp\Client();
-            $url = config('app.create_billing');
-            $response = $client->request('POST', $url, [
-                'json' => [
-                    'user'=> [
-                        'id' => session()->get('user')['user_id'],
-                        'name' => $request->name,
-                        'address' => $full_address,
-                        'phone' => $request->phone,
-                        // 'nameon' => $request->name_on_card,
-                    ],
-                    'products'=> $cartproducts,
-                    // [
-                    //     'id' => 1266,
-                    //     'amount' => 1,
-                    //     'name' => 'MacBook Pro',
-                    //     'price' => (int) 25000000,
-                    //     'subTotal' => (int) 25000000
-                    // ],
-                    // 'delivery'=> [
-                    //     'date' =>'19-11-23 10:00:00',
-                    //     'status' => 'On going'
-                    // ],
-                    'payment'=>[
-                        'type' => session()->get('payment')['type'],
-                        'status' => (session()->get('payment')['type']=="COD") ? 'Pending' : 'Cancel'
-                    ],
-                    'deliveryUnitId' => session()->get('delivery')['delivery_id'], 
-                    'value' =>[
+        $client = new \GuzzleHttp\Client();
+        $url = config('app.create_billing');
+        $response = $client->request('POST', $url, [
+            'json' => [
+                'user' => [
+                    'id' => session()->get('user')['user_id'],
+                    'name' => $request->name,
+                    'address' => $full_address,
+                    'phone' => $request->phone,
+                ],
+                'products' => $cartproducts,
+                'payment' => [
+                    'type' => session()->get('payment')['type'],
+                    'status' => (session()->get('payment')['type'] == "COD") ? 'Pending' : 'Cancel'
+                ],
+                'deliveryUnitId' => session()->get('delivery')['delivery_id'],
+                'value' => [
                     'discount' => getNumbers()->get('discount'),
                     'shipping' => getNumbers()->get('shipping'),
                     'totalValue' => getNumbers()->get('newTotal'),
                     'subTotal' => getNumbers()->get('subtotal'),
                     'tax' => getNumbers()->get('newTax')
-                    ]
                 ]
-            ]);	
+            ]
+        ]);
 
-            // Testing respon
-            // $data = $response->getBody()->getContents();
-            // $data = $response->getBody();
-            // // echo $data;
-            // $data = json_decode($data);
-            // dd($data);
+        // Testing respon
+        // $data = $response->getBody()->getContents();
+        // $data = $response->getBody();
+        // // echo $data;
+        // $data = json_decode($data);
+        // dd($data);
 
-            // $this->updateToCartUsersTables($request,$full_address);
-            $cart->delete();
-            // Cart::instance('default')->destroy();
-            session()->forget('coupon');
-            session()->forget('delivery');
-            session()->forget('payment');
-            // return back()->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-            return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-        // } catch (CardErrorException $e) {
-        //     return back()->withErrors('Error! ' . $e->getMessage());
-        // }
+        $this->updateToCartUsersTables($request, $full_address);
+        $cart->delete();
+        session()->forget('coupon');
+        session()->forget('delivery');
+        session()->forget('payment');
+        return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
     }
 
-    
-    protected function updateToCartUsersTables($request,$full_address)
+
+    protected function updateToCartUsersTables($request, $full_address)
     {
         // Insert into orders table
-        $cart = CartController::addToCartUsersTables();
+        $cart = CartUser::addToCartUsersTables();
         // $cart->billing_email = $request->email;
         $cart->billing_name = $request->name;
         $cart->billing_address = $full_address;
@@ -181,28 +134,6 @@ class CheckoutController extends Controller
         $cart->billing_total = getNumbers()->get('newTotal');
         $cart->save();
     }
-    
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -211,62 +142,48 @@ class CheckoutController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function updateDelivery(Request $request, $id)
     {
-        $delivery=getDeliveryUnits();
-        session(['delivery'=>[
+        $delivery = getDeliveryUnits();
+        session(['delivery' => [
             'id' => $request->delivery_id,
             'delivery_id' => $delivery[$request->delivery_id]['id'],
             'name' => $delivery[$request->delivery_id]['name'],
             'base_fee' => $delivery[$request->delivery_id]['base_fee'],
         ]]);
-        session()->flash('success_message','Delivery unit was updated successfully!');
+        session()->flash('success_message', 'Delivery unit was updated successfully!');
         return response()->json(['success' => true]);
-        // return $request->delivery_id;
     }
 
     public function updatePay(Request $request, $id)
     {
-        $payment=getUserPayment();
-        if($request->type=="COD"){
-            session(['payment'=>[
+        $payment = getUserPayment();
+        if ($request->type == "COD") {
+            session(['payment' => [
                 'type' => 'COD',
                 'card_id' => null,
                 'card_number' => null,
-        ]]);
-        } 
-        elseif ($request->type=="Other"){
-            session(['payment'=>[
+            ]]);
+        } elseif ($request->type == "Other") {
+            session(['payment' => [
                 'type' => 'Card',
                 'card_id' => null,
                 'card_number' => null,
             ]]);
-        } 
-        else{
-            foreach($payment as $pay){
-                if ($pay['card_id']==$request->type){
-                    $card=$pay;
-                } 
+        } else {
+            foreach ($payment as $pay) {
+                if ($pay['card_id'] == $request->type) {
+                    $card = $pay;
+                }
             }
-            session(['payment'=>[
+            session(['payment' => [
                 'type' => 'Card',
                 'card_id' => $card['card_id'],
                 'card_number' => $card['card_number'],
             ]]);
         }
- 
-        session()->flash('success_message','Payment was updated successfully!');
+
+        session()->flash('success_message', 'Payment was updated successfully!');
         return response()->json(['success' => true]);
     }
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
-
 }
