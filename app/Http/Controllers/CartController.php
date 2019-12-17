@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Product;
 use App\CartUser;
 use App\CartProduct;
 
 use Illuminate\Http\Request;
-use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
@@ -18,39 +16,32 @@ class CartController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    //Sử dụng thiết kế MVC. Nội dung file code CartController với URI partern /cart (hiển thị ra toàn bộ)
+    //sản phẩm trong giỏ hàng. 
     public function index()
     {
-        if (isLogin()==false) return redirect(config('app.auth').'/requirelogin?url='.config('app.api'));
-        // $cart = CartUser::where('user_id',session()->get('user')['user_id'])->first();
-        // dd($cart);
-        $cart = $this->addToCartUsersTables();
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
+        if (isLogin() == false) return redirect(config('app.auth') . '/requirelogin?url=' . config('app.api'));
+
+        //Lấy dữ liệu thông qua model.
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getCartByCartID($cart->id);
         $mightAlsoLike = Product::MightAlsoLike()->get();
-        
-        $url=null;
+
+        $url = null;
         if (session()->has('user')) {
-            $user=session()->get('user');
-            if (array_key_exists("url",$user))
-            $url=$user['url'];
-        }
-        else $url=null;
+            $user = session()->get('user');
+            if (array_key_exists("url", $user))
+                $url = $user['url'];
+        } else $url = null;
+
+        //Dùng dữ liệu render ra view hiển thị cho người dùng.
         return view('cart')->with([
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
             'user_id' => session()->get('user')['user_id'],
             'session_id' => session()->get('user')['session_id'],
             'url' => $url
-            ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        ]);
     }
 
     /**
@@ -61,20 +52,37 @@ class CartController extends Controller
      */
     public function store(Request $request)
     {
-        $cart = $this->addToCartUsersTables();   
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->where('product_id',$request->id)->first();
+        if (isLogin() == false) return redirect(config('app.auth') . '/requirelogin?url=' . config('app.api'));
+
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getProductByProductIDinSpecCart($cart->id, $request->id);
         // For POST method with missing optional data
-        if ($cartproduct!=null) {
-            if ($cartproduct->quantity==10) {
+        if ($cartproduct != null) {
+            if ($cartproduct->quantity == 10) {
                 session()->flash('errors', collect(['Quantity must be between 1 and 10.']));
                 return redirect()->route('cart.index');
-            }       
+            }
         }
-          
-        // Cart::add($request->id,$request->name,1,$request->price, ['description' => $request->details,'image' => $request->image]);
-        // ->associate('App\Product');
         $this->addToCartProductsTables($request);
-        return redirect()->route('cart.index')->with('success_message','Item was added to your cart!');
+        return redirect()->route('cart.index')->with('success_message', 'Item was added to your cart!');
+    }
+
+    public function storefromAPI(Request $request)
+    {
+        $cart = CartUser::addToCartUsersTablesbyUserID($request->user_id);
+        $cartproduct = CartProduct::getProductByProductIDinSpecCart($cart->id, $request->product_id);
+        // For POST method with missing optional data
+        if ($cartproduct != null) {
+            if ($cartproduct->quantity == 10) {
+                $cartproduct = CartProduct::jSONProductByProductIDinSpecCart($cart->id, $request->product_id);
+                $cartproduct->put('message', 'FAIL:Quantity must be between 1 and 10.');
+                return $cartproduct->toJson();
+            }
+        }
+        CartController::APIaddToCartProductsTables($request);
+        $cartproduct = CartProduct::jSONProductByProductIDinSpecCart($cart->id, $request->product_id);
+        $cartproduct->put('message', 'SUCCESS:Item was added to your cart!');
+        return $cartproduct->toJson();
     }
 
     /**
@@ -83,34 +91,23 @@ class CartController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($session_id,$user_id,$url)
+    public function show($session_id, $user_id, $url)
     {
-        session(['user'=>[
+        session(['user' => [
             'user_id' => $user_id,
             'session_id' => $session_id,
-            'url' => 'http://'.$url
+            'url' => 'http://' . $url
         ]]);
-        $cart = $this->addToCartUsersTablesbyUser_id($user_id);
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->get();
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getCartByCartID($cart->id);
         $mightAlsoLike = Product::MightAlsoLike()->get();
         return view('cart')->with([
             'mightAlsoLike' => $mightAlsoLike,
             'cartproduct' => $cartproduct,
             'user_id' => $user_id,
             'session_id' => $session_id,
-            'url' => 'http://'.$url
-            ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+            'url' => 'http://' . $url
+        ]);
     }
 
     /**
@@ -131,12 +128,11 @@ class CartController extends Controller
             return response()->json(['success' => false], 400);
         }
 
-        $cart = $this->addToCartUsersTables();   
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->where('id',$id)->firstOrFail();
-        // Cart::update($id, $request->quantity);
-        $cartproduct->quantity=$request->quantity;
-        if ($cartproduct->save()){
-            session()->flash('success_message','Quantity was updated successfully!');
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getProductByRowIDinSpecCart($cart->id, $id);
+        $cartproduct->quantity = $request->quantity;
+        if ($cartproduct->save()) {
+            session()->flash('success_message', 'Quantity was updated successfully!');
             return response()->json(['success' => true]);
         }
     }
@@ -149,32 +145,20 @@ class CartController extends Controller
      */
     public function destroy($id)
     {
-        $cart = $this->addToCartUsersTables();
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->where('id',$id)->firstOrFail();
-        if ($cartproduct->delete()){
-        return back()->with('success_message', 'Item has been removed!');
+        $cart = CartUser::addToCartUsersTables();
+        $cartproduct = CartProduct::getProductByRowIDinSpecCart($cart->id, $id);
+        if ($cartproduct->delete()) {
+            return back()->with('success_message', 'Item has been removed!');
         }
     }
 
-    static public function addToCartUsersTables()
-    {
-        $cart = CartUser::where('user_id',session()->get('user')['user_id'])->firstOrCreate(['user_id' => session()->get('user')['user_id']]);
-        return $cart;
-    }
-
-    static public function addToCartUsersTablesbyUser_id($user_id)
-    {
-        $cart = CartUser::where('user_id',$user_id)->firstOrCreate(['user_id' => $user_id]);
-        return $cart;
-    }
-    
     static public function addToCartProductsTables($request)
     {
         // Create a cart
-        $cart = CartUser::where('user_id',session()->get('user')['user_id'])->firstOrCreate(['user_id' => session()->get('user')['user_id']]);
+        $cart = CartUser::addToCartUsersTables();
 
         // Add a product to cart
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->where('product_id',$request->id)->first();
+        $cartproduct = CartProduct::getProductByProductIDinSpecCart($cart->id, $request->id);
         if ($cartproduct === null) {
             CartProduct::create([
                 'cart_id' => $cart->id,
@@ -183,30 +167,20 @@ class CartController extends Controller
                 'name' => $request->name,
                 'price' => $request->price
             ]);
-        }
-        else {
-            $cartproduct->quantity+=1;
+        } else {
+            $cartproduct->quantity += 1;
             $cartproduct->save();
         }
-        // dd($cart->id);
-        // Insert into order_product table
-            // CartProduct::create([
-            //     'cart_id' => $cart->id,
-            //     'product_id' => $request->id,
-            //     'quantity' => 1,
-            //     'name' => $request->name,
-            //     'price' => $request->price
-            // ]);
     }
 
     static public function APIaddToCartProductsTables($request)
     {
         // Create a cart
-        $cart = CartUser::where('user_id',$request->user_id)->firstOrCreate(['user_id' => $request->user_id]);
+        $cart = CartUser::addToCartUsersTablesbyUserID($request->user_id);
 
         // Add a product to cart
-        $cartproduct=CartProduct::where('cart_id',$cart->id)->where('product_id',$request->product_id)->first();
-        $product=Product::where('id',$request->product_id)->first();
+        $cartproduct = CartProduct::getProductByProductIDinSpecCart($cart->id, $request->product_id);
+        $product = Product::getProductById($request->product_id);
         if ($cartproduct === null) {
             CartProduct::create([
                 'cart_id' => $cart->id,
@@ -215,19 +189,9 @@ class CartController extends Controller
                 'name' => $product->name,
                 'price' => $product->price
             ]);
-        }
-        else {
-            $cartproduct->quantity+=1;
+        } else {
+            $cartproduct->quantity += 1;
             $cartproduct->save();
         }
-        // dd($cart->id);
-        // Insert into order_product table
-            // CartProduct::create([
-            //     'cart_id' => $cart->id,
-            //     'product_id' => $request->id,
-            //     'quantity' => 1,
-            //     'name' => $request->name,
-            //     'price' => $request->price
-            // ]);
     }
 }
