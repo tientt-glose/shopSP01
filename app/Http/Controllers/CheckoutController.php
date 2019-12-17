@@ -48,6 +48,8 @@ class CheckoutController extends Controller
             else {
                 session(['payment' => [
                     'type' => 'COD',
+                    'card_id' => null,
+                    'card_number' => null,
                 ]]);
             }
         }
@@ -103,12 +105,12 @@ class CheckoutController extends Controller
             ]
         ]);
 
-        // Testing respon
+        // // Testing respon
         // $data = $response->getBody()->getContents();
-        // $data = $response->getBody();
-        // // echo $data;
-        // $data = json_decode($data);
-        // dd($data);
+        // // $data = $response->getBody();
+        // echo $data;
+        // // $data = json_decode($data);
+        // dd($response);
 
         $this->updateToCartUsersTables($request, $full_address);
         $cart->delete();
