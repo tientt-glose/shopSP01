@@ -37,16 +37,19 @@ class CheckoutController extends Controller
         }
 
         $payment = getUserPayment();
-        if ((!(session()->has('payment'))) && ($payment != null)) {
-            session(['payment' => [
-                'type' => 'card',
-                'card_id' => $payment[0]['card_id'],
-                'card_number' => $payment[0]['card_number'],
-            ]]);
-        } else {
-            session(['payment' => [
-                'type' => 'COD',
-            ]]);
+        if (!(session()->has('payment'))) {
+            if ($payment != null) {
+                session(['payment' => [
+                    'type' => 'card',
+                    'card_id' => $payment[0]['card_id'],
+                    'card_number' => $payment[0]['card_number'],
+                ]]);
+            }
+            else {
+                session(['payment' => [
+                    'type' => 'COD',
+                ]]);
+            }
         }
 
 
