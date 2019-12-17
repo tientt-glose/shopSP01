@@ -26,7 +26,7 @@ function getNumbers()
 {
     $cart = CartUser::where('user_id', session()->get('user')['user_id'])->first();
     $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
-    $subtotal= getSubTotal($cartproduct);
+    $subtotal = getSubTotal($cartproduct);
     $tax = config('cart.tax') / 100;
     $discount = session()->get('coupon')['discount'] ?? 0;
     $code = session()->get('coupon')['code'] ?? null;
@@ -92,12 +92,12 @@ function getQuantity()
     $qty = 0;
     if (session()->has('user')) {
         $cart = CartUser::where('user_id', session()->get('user')['user_id'])->first();
-        if ($cart!=null){
-        $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
-        foreach ($cartproduct as $item) {
-            $qty += $item->quantity;
+        if ($cart != null) {
+            $cartproduct = CartProduct::where('cart_id', $cart->id)->get();
+            foreach ($cartproduct as $item) {
+                $qty += $item->quantity;
+            }
         }
-    }
     }
     return $qty;
 }
@@ -123,24 +123,26 @@ function isLogin()
     // // echo $data;
     // if (strpos($data,'yes')) return true;
     // else return false;
-    if (AuthUser::isLogin()==true) return true;
+    if (AuthUser::isLogin() == true) return true;
     else return false;
 }
 
-function getDeliveryUnits(){
+function getDeliveryUnits()
+{
     $client = new \GuzzleHttp\Client();
     $url = config('app.add_delivery_units');
     $response = $client->get($url);
     $data = $response->getBody();
-    $data = json_decode($data,true);
+    $data = json_decode($data, true);
     return $data['delivery_units'];
 }
 
-function getUserPayment(){
+function getUserPayment()
+{
     $client = new \GuzzleHttp\Client();
-    $url = config('app.auth').'/api/user/'.session()->get('user')['user_id'].'/payment';
+    $url = config('app.auth') . '/api/user/' . session()->get('user')['user_id'] . '/payment';
     $response = $client->get($url);
     $data = $response->getBody();
-    $data = json_decode($data,true);
+    $data = json_decode($data, true);
     return $data;
 }

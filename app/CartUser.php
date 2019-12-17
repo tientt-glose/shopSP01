@@ -10,7 +10,7 @@ class CartUser extends Model
     {
         return $this->belongsTo('App\User');
     }
-    
+
     public function cartproducts()
     {
         return $this->hasMany('App\CartProduct');
@@ -26,4 +26,14 @@ class CartUser extends Model
         'billing_province', 'billing_postalcode', 'billing_phone', 'billing_name_on_card', 'billing_discount',
         'billing_discount_code', 'billing_subtotal', 'billing_tax', 'billing_total', 'error',
     ];
+
+    public static function addToCartUsersTables()
+    {
+        return CartUser::where('user_id', session()->get('user')['user_id'])->firstOrCreate(['user_id' => session()->get('user')['user_id']]);
+    }
+
+    public static function addToCartUsersTablesbyUserID($user_id)
+    {
+        return CartUser::where('user_id', $user_id)->firstOrCreate(['user_id' => $user_id]);
+    }
 }

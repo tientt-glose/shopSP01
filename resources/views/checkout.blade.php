@@ -37,10 +37,6 @@
                     {{ csrf_field() }}
                     <h2>Billing Details</h2>
 
-                    {{-- <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ session()->get('user')['user_id'] }}" readonly>
-                    </div> --}}
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
@@ -61,16 +57,10 @@
                         </div>
                     </div> <!-- end half-form -->
 
-                    {{-- <div class="half-form"> --}}
-                        {{-- <div class="form-group">
-                            <label for="postalcode">Postal Code</label>
-                            <input type="text" class="form-control" id="postalcode" name="postalcode" value="" required>
-                        </div> --}}
-                        <div class="form-group">
-                            <label for="phone">Phone</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone') }}" required>
-                        </div>
-                    {{-- </div> <!-- end half-form --> --}}
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone') }}" required>
+                    </div>
 
                     <div class="spacer"></div>
 
@@ -93,12 +83,14 @@
 
                     <div class="form-group">
                         <select class="payment" data-id={{ session()->get('user')['user_id'] }}>
+                            @if ($payment != null)
                             @foreach ($payment as $pay)
                                 <option 
                                     {{ session()->get('payment')['card_id'] == $pay['card_id'] ? 'selected' : '' }}
                                     value="{{ $pay['card_id'] }}">
                                 {{ substr($pay['card_number'],0,7).'*********'}}</option>
                             @endforeach
+                            @endif
                             <option {{ session()->get('payment')['type'] == "COD" ? 'selected' : '' }} value="COD">COD</option>
                             <option {{ ((session()->get('payment')['type'] == "Card") && (session()->get('payment')['card_id'] == null) ) ? 'selected' : '' }} value="Other">Other ...</option>
                         </select>
@@ -109,18 +101,6 @@
                         <label for="name_on_card">Name on Card</label>
                         <input type="text" class="form-control" id="name_on_card" name="name_on_card" value="" required>
                     </div>
-
-                    {{-- <div class="form-group">
-                            <label for="card-element">
-                              Credit or debit card
-                            </label>
-                            <div id="card-element">
-                              <!-- a Stripe Element will be inserted here. -->
-                            </div>
-    
-                            <!-- Used to display form errors -->
-                            <div id="card-errors" role="alert"></div>
-                    </div> --}}
 
                     <div class="form-group">
                         <label for="ccnumber">Credit Card Number</label>
@@ -230,103 +210,13 @@
 
     <script src="{{ asset('js/app.js') }}"></script>
     <script>
-        // (function(){
-        //     // Create a Stripe client.
-        //     var stripe = Stripe('pk_test_4sueEzTv9MWhSX045OkxPniz00fxo8JBoL');
-
-        //     // Create an instance of Elements.
-        //     var elements = stripe.elements();
-
-        //     // Custom styling can be passed to options when creating an Element.
-        //     // (Note that this demo uses a wider set of styles than the guide below.)
-        //     var style = {
-        //     base: {
-        //         color: '#32325d',
-        //         fontFamily: '"Roboto", "Helvetica Neue", Helvetica, sans-serif',
-        //         fontSmoothing: 'antialiased',
-        //         fontSize: '16px',
-        //         '::placeholder': {
-        //         color: '#aab7c4'
-        //         }
-        //     },
-        //     invalid: {
-        //         color: '#fa755a',
-        //         iconColor: '#fa755a'
-        //     }
-        //     };
-
-        //     // Create an instance of the card Element.
-        //     var card = elements.create('card', {
-        //         style: style,
-        //         hidePostalCode: true
-        //         });
-
-        //     // Add an instance of the card Element into the `card-element` <div>.
-        //     card.mount('#card-element');
-
-        //     // Handle real-time validation errors from the card Element.
-        //     card.addEventListener('change', function(event) {
-        //     var displayError = document.getElementById('card-errors');
-        //     if (event.error) {
-        //         displayError.textContent = event.error.message;
-        //     } else {
-        //         displayError.textContent = '';
-        //     }
-        //     });
-
-        //     // Handle form submission.
-        //     var form = document.getElementById('payment-form');
-        //     form.addEventListener('submit', function(event) {
-        //     event.preventDefault();
-
-        //     // Disable the submit button to prevent repeated clicks
-        //     document.getElementById('complete-order').disabled = true;
-            
-        //     var options = {
-        //         name: document.getElementById('name_on_card').value,
-        //         address_line1: document.getElementById('address').value,
-        //         address_city: document.getElementById('city').value,
-        //         address_state: document.getElementById('province').value,
-        //       }
-
-        //     stripe.createToken(card, options).then(function(result) {
-        //         if (result.error) {
-        //         // Inform the user if there was an error.
-        //         var errorElement = document.getElementById('card-errors');
-        //         errorElement.textContent = result.error.message;
-
-        //         // Enable the submit button
-        //         document.getElementById('complete-order').disabled = false;
-
-        //         } else {
-        //         // Send the token to your server.
-        //         stripeTokenHandler(result.token);
-        //         }
-        //     });
-        //     });
-
-        //     // Submit the form with the token ID.
-        //     function stripeTokenHandler(token) {
-        //     // Insert the token ID into the form so it gets submitted to the server
-        //     var form = document.getElementById('payment-form');
-        //     var hiddenInput = document.createElement('input');
-        //     hiddenInput.setAttribute('type', 'hidden');
-        //     hiddenInput.setAttribute('name', 'stripeToken');
-        //     hiddenInput.setAttribute('value', token.id);
-        //     form.appendChild(hiddenInput);
-
-        //     // Submit the form
-        //     form.submit();
-        //     }
-        // })();
-
         (function(){
             const classname = document.querySelectorAll('.quantity')
 
             Array.from(classname).forEach(function(element) {
                 element.addEventListener('change', function() {
                     const id = element.getAttribute('data-id')
-                    axios.patch(`checkout/${id}`, {
+                    axios.patch(`checkout_delivery/${id}`, {
                         delivery_id: this.value
                     })
                     .then(function (response) {
