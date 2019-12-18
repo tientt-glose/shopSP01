@@ -12,6 +12,7 @@ return [
     'auth' => "http://secure-mountain-93147.herokuapp.com",
     'api' => "http://shopsp-01.herokuapp.com",
     'nhom9' => "http://localhost:8080/api",
+    'nhom4' => "https://sp-04-order.herokuapp.com",
     
     /*
     |--------------------------------------------------------------------------
