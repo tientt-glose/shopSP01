@@ -72,7 +72,7 @@ class CheckoutController extends Controller
                 'receipt_email' => $request->email,
                 'metadata' => [
                     'contents' => $cartproduct,
-                    'quantity' => Cart::instance('default')->count(),
+                    'quantity' => CartProduct::where('cart_id',$cart->id)->count(),
                     'discount' => collect(session()->get('coupon'))->toJson(),
                 ],
             ]);
