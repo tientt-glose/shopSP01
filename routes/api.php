@@ -20,8 +20,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('products','ProductAPIController@index');
 Route::get('coupons','CouponsAPIController@index');
 Route::post('billing','BillingAPItest@store');
-Route::post('carts','CartController@storefromAPI');
-
+Route::get('cart/{user_id}','CartAPIController@show');
+// Route::post('carts','CartController@storefromAPI');
+Route::post('carts','CartAPIController@store');
+Route::patch('cart/{user_id}','CartAPIController@update');
+Route::delete('cart/{user_id}','CartAPIController@destroy');
 
 
 

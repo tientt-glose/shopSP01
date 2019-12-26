@@ -4,7 +4,13 @@
             <div class="logo"><a href="/">Lazavel❣</a></div>
             @if (! request()->is('checkout'))
             <ul>
+                @if (session()->has('user'))
+                @if ((array_key_exists("url",session()->get('user'))))
+                <li><a href="{{ $url.'/setsession?user_id='.$user_id.'&session_id='.$session_id }}">Shop</a></li>
+                @endif
+                @else
                 <li><a href="{{ route('shop.index') }}">Shop</a></li>
+                @endif
                 <li><a href="#">About</a></li>
                 <li><a href="#">Blog</a></li>
                 {{-- <li>

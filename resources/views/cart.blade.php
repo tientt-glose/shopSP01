@@ -74,15 +74,14 @@
                 <div class="cart-totals-left">
                     Subtotal <br>
                     Tax (10%) <br>
-                    Ship <br>
-                    <span class="cart-totals-total">Total</span>
+                    <span class="cart-totals-total">Total</span> <br>
+                    <i>Excluding shipping costs</i>
                 </div>
 
                 <div class="cart-totals-right">
                     <div class="cart-totals-subtotal">
                         {{ presentPrice(getSubTotal($cartproduct)) }} <br>
                         {{ presentPrice(getTax($cartproduct)) }} <br>
-                        {{ presentPrice(config('app.ship')) }} <br>
                         <span class="cart-totals-total">{{ presentPrice(getTotal($cartproduct)) }}</span>
                     </div>
                 </div>
