@@ -104,17 +104,17 @@
 
                     <div class="form-group">
                         <label for="ccnumber">Credit Card Number</label>
-                        <input type="text" class="form-control" id="ccnumber" name="ccnumber" value="">
+                        <input type="text" class="form-control" id="ccnumber" name="ccnumber" value="" required>
                     </div>
 
                     <div class="half-form">
                         <div class="form-group">
                             <label for="expiry">Expiry</label>
-                            <input type="text" class="form-control" id="expiry" name="expiry" placeholder="MM/DD">
+                            <input type="text" class="form-control" id="expiry" name="expiry" placeholder="MM/DD" required>
                         </div>
                         <div class="form-group">
                             <label for="cvc">CVC Code</label>
-                            <input type="text" class="form-control" id="cvc" name="cvc" value="">
+                            <input type="text" class="form-control" id="cvc" name="cvc" value="" required>
                         </div>
                     </div> <!-- end half-form -->
                     @endif
