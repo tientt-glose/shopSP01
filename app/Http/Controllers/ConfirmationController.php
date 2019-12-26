@@ -12,7 +12,7 @@ class ConfirmationController extends Controller
     public function index()
     {
         if (!session()->has('success_message')) {
-            return redirect('/shopSP01/public');
+            return redirect('/');
         }
 
         return view('thankyou');

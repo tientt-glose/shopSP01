@@ -6,7 +6,7 @@
             <ul>
                 @if (session()->has('user'))
                 @if ((array_key_exists("url",session()->get('user'))))
-                <li><a href="{{ $url.'/api/setsession?user_id='.$user_id.'&session_id='.$session_id }}">Shop</a></li>
+                <li><a href="{{ session()->get('user')['url'].'/api/setsession?user_id='.$user_id.'&session_id='.$session_id }}">Shop</a></li>
                 @endif
                 @else
                 <li><a href="{{ route('shop.index') }}">Shop</a></li>
