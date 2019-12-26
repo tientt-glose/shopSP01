@@ -22,7 +22,7 @@ class CheckoutController extends Controller
         $cartproduct = CartProduct::getCartByCartID($cart->id);
 
         if (getQuantitybyCartProduct($cartproduct) == 0) {
-            return redirect()->route('shop.index');
+            return redirect()->route('cart.index');
         }
 
         $delivery = getDeliveryUnits();
